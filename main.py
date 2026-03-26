@@ -26,7 +26,7 @@ from handlers.game import (
     end_game,
     confirm_end_game
     )
-from infrastructure.logging_config import setup_logging
+from infrastructure.logging_config import logger
 from infrastructure.storage.sqlite import Storage
 from infrastructure.telegram.broadcaster import Broadcaster
 
@@ -85,7 +85,7 @@ def main(token, broadcast_chat_id):
 
 if __name__ == "__main__":
     load_dotenv()
-    setup_logging()
     token = getenv("TOKEN")
     broadcast_chat_id = int(getenv("BROADCAST_CHAT_ID"))
+    logger.info("Bot starting...")
     main(token, broadcast_chat_id)

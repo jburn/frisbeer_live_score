@@ -1,5 +1,5 @@
-import logging
 from telegram.error import BadRequest
+from infrastructure.logging_config import logger
 from handlers.decorators import with_context
 from handlers.context import Ctx
 from domain.actions import SwitchSides, AssignKnocks, StartGame, StartRound, EndRound
@@ -26,7 +26,6 @@ from ui.keyboards import (
     confirm_end_keyboard
 )
 
-logger = logging.getLogger(__name__)
 
 @with_context
 async def game_info(ctx: Ctx):

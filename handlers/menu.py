@@ -1,8 +1,8 @@
 import uuid
 import time
-import logging
 from telegram import Update
 from telegram.ext import CallbackContext
+from infrastructure.logging_config import logger
 from domain.models import Team, Game
 from ui.keyboards import (
     main_menu_keyboard,
@@ -13,7 +13,6 @@ from ui.keyboards import (
 )
 import ui.text as uitxt
 
-logger = logging.getLogger(__name__)
 
 async def start(update: Update, context: CallbackContext):
     await main_menu(update, context)
