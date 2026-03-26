@@ -1,4 +1,4 @@
-# frisbeer_live_score
+# Frisbeer LiveScore Bot
 
 Telegram bot for broadcasting Frisbeer game status live.
 
