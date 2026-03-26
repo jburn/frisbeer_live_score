@@ -5,13 +5,8 @@ class Broadcaster:
 
     async def send(self, text):
         return await self.bot.send_message(
-            chat_id=self.chat_id,
-            text=f"`{text}`",
-            parse_mode="Markdown"
+            chat_id=self.chat_id, text=f"`{text}`", parse_mode="Markdown"
         )
 
     async def delete(self, msg_id):
-        await self.bot.delete_message(
-            chat_id = self.chat_id,
-            message_id = msg_id
-        )
+        await self.bot.delete_message(chat_id=self.chat_id, message_id=msg_id)

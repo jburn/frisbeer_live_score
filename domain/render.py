@@ -1,7 +1,12 @@
 from copy import deepcopy
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import ui.text as uitxt
-from domain.engine import compute_state, get_current_round_knocks, count_player_knocks, count_round_wins
+from domain.engine import (
+    compute_state,
+    get_current_round_knocks,
+    count_player_knocks,
+    count_round_wins,
+)
 from domain.models import Game, GameState
 from domain.actions import (
     AssignKnocks,
@@ -9,41 +14,35 @@ from domain.actions import (
     Action,
     StartGame,
     StartRound,
-    EndRound
+    EndRound,
 )
 
-MARK_MAP = {
-    "b": "k",
-    "k": "f",
-    "f": "b",
-    "u": "k",
-    " ": " "
-}
+MARK_MAP = {"b": "k", "k": "f", "f": "b", "u": "k", " ": " "}
 
-EMOJI_MAP = {
-    "b": "🍺",
-    "k": "💥",
-    "f": "🤯",
-    " ": "🕳️",
-    "u": "🙃"
-}
+EMOJI_MAP = {"b": "🍺", "k": "💥", "f": "🤯", " ": "🕳️", "u": "🙃"}
 
 ACTION_MAP = {
     AssignKnocks: "{emoji}>{player}",
     SwitchSides: "🤖>Switched sides!",
-    StartRound: "🤖>Round {n} started!"
+    StartRound: "🤖>Round {n} started!",
 }
+
 
 def beer_row(beers: list):
     return "".join([EMOJI_MAP.get(beer, beer) for beer in beers])
 
+
 def beer_emoji(beer: str):
     return EMOJI_MAP.get(beer, beer)
+
 
 def mark_format_beer(current: str) -> str:
     return MARK_MAP.get(current, current)
 
-def render(game: Game, state_override: GameState = None) -> tuple[str, InlineKeyboardMarkup]:
+
+def render(
+    game: Game, state_override: GameState = None
+) -> tuple[str, InlineKeyboardMarkup]:
     state = state_override or compute_state(game)
     gid = game.id
     t1 = game.team1
@@ -55,10 +54,22 @@ def render(game: Game, state_override: GameState = None) -> tuple[str, InlineKey
 
     reply = f"`{render_game_message(game)}`"
 
-    t1_name_buttons = [InlineKeyboardButton(player, callback_data=f"assign:{gid}:team1:{player}") for player in t1.players]
-    t1_beer_buttons = [InlineKeyboardButton(beer_emoji(x), callback_data=f"mark:{gid}:team1:{i}") for i, x in enumerate(state.team1_beers)]
-    t2_name_buttons = [InlineKeyboardButton(player, callback_data=f"assign:{gid}:team2:{player}") for player in t2.players]
-    t2_beer_buttons = [InlineKeyboardButton(beer_emoji(x), callback_data=f"mark:{gid}:team2:{i}") for i, x in enumerate(state.team2_beers)]
+    t1_name_buttons = [
+        InlineKeyboardButton(player, callback_data=f"assign:{gid}:team1:{player}")
+        for player in t1.players
+    ]
+    t1_beer_buttons = [
+        InlineKeyboardButton(beer_emoji(x), callback_data=f"mark:{gid}:team1:{i}")
+        for i, x in enumerate(state.team1_beers)
+    ]
+    t2_name_buttons = [
+        InlineKeyboardButton(player, callback_data=f"assign:{gid}:team2:{player}")
+        for player in t2.players
+    ]
+    t2_beer_buttons = [
+        InlineKeyboardButton(beer_emoji(x), callback_data=f"mark:{gid}:team2:{i}")
+        for i, x in enumerate(state.team2_beers)
+    ]
 
     keyboard = []
     if state.reverse:
@@ -69,11 +80,17 @@ def render(game: Game, state_override: GameState = None) -> tuple[str, InlineKey
         keyboard.append(t1_beer_buttons)
 
     keyboard.append(
-        [InlineKeyboardButton(
-            f"⬆️{game.team1.emoji} Refresh {game.team2.emoji}⬇️" if state.reverse
-            else f"⬆️{game.team1.emoji} Refresh {game.team2.emoji}⬇️",
-            callback_data=f"refresh:{gid}")]
-        )
+        [
+            InlineKeyboardButton(
+                (
+                    f"⬆️{game.team1.emoji} Refresh {game.team2.emoji}⬇️"
+                    if state.reverse
+                    else f"⬆️{game.team1.emoji} Refresh {game.team2.emoji}⬇️"
+                ),
+                callback_data=f"refresh:{gid}",
+            )
+        ]
+    )
 
     if state.reverse:
         keyboard.append(t1_beer_buttons)
@@ -82,17 +99,31 @@ def render(game: Game, state_override: GameState = None) -> tuple[str, InlineKey
         keyboard.append(t2_beer_buttons)
         keyboard.append(t2_name_buttons)
 
-    keyboard.append([
-        InlineKeyboardButton(uitxt.UNDO, callback_data=f"undo:{gid}"),
-        InlineKeyboardButton(uitxt.SWITCH_SIDES, callback_data=f"switch_sides:{gid}")
-        ])
+    keyboard.append(
+        [
+            InlineKeyboardButton(uitxt.UNDO, callback_data=f"undo:{gid}"),
+            InlineKeyboardButton(
+                uitxt.SWITCH_SIDES, callback_data=f"switch_sides:{gid}"
+            ),
+        ]
+    )
 
     # win round buttons
     keyboard.append(
-        [InlineKeyboardButton(f"{t1.emoji} wins ({t1_score + 1}-{t2_score})", callback_data=f"end_round:{gid}:team1"),
-         InlineKeyboardButton(f"{t2.emoji} wins ({t1_score}-{t2_score + 1})", callback_data=f"end_round:{gid}:team2")])
+        [
+            InlineKeyboardButton(
+                f"{t1.emoji} wins ({t1_score + 1}-{t2_score})",
+                callback_data=f"end_round:{gid}:team1",
+            ),
+            InlineKeyboardButton(
+                f"{t2.emoji} wins ({t1_score}-{t2_score + 1})",
+                callback_data=f"end_round:{gid}:team2",
+            ),
+        ]
+    )
 
     return reply, InlineKeyboardMarkup(keyboard)
+
 
 def apply_marked_overlay(state: GameState, marked: list[tuple[str, int]]):
     state = deepcopy(state)
@@ -104,6 +135,7 @@ def apply_marked_overlay(state: GameState, marked: list[tuple[str, int]]):
         else:
             state.team2_beers[index] = to
     return state
+
 
 def render_game_message(game: Game, pending_action: Action | None = None):
     state = compute_state(game)
@@ -157,6 +189,7 @@ def render_game_message(game: Game, pending_action: Action | None = None):
         return t2_string + mid_string + t1_string
     return t1_string + mid_string + t2_string
 
+
 def render_round_report(game: Game) -> str:
     team1 = game.team1
     team2 = game.team2
@@ -171,11 +204,16 @@ def render_round_report(game: Game) -> str:
     round_report += "Round report:\n"
     round_report += f"{team1.emoji} {team1.name}\n"
     for player in team1.players:
-        round_report += f"{player} {knocks['team1'][player][0]} (-{knocks['team1'][player][1]})\n"
+        round_report += (
+            f"{player} {knocks['team1'][player][0]} (-{knocks['team1'][player][1]})\n"
+        )
     round_report += f"{team2.emoji} {team2.name}\n"
     for player in team2.players:
-        round_report += f"{player} {knocks['team2'][player][0]} (-{knocks['team2'][player][1]})\n"
+        round_report += (
+            f"{player} {knocks['team2'][player][0]} (-{knocks['team2'][player][1]})\n"
+        )
     return round_report
+
 
 def render_game_win_message(game: Game) -> str:
     round_results = [a for a in game.history if isinstance(a, EndRound)]
@@ -202,12 +240,14 @@ def render_game_win_message(game: Game) -> str:
         )
     return reply
 
+
 def render_result_string(team1_score, team2_score, team1_emoji, team2_emoji):
     if team1_score > team2_score:
         return f"{team1_emoji} wins {team1_score}-{team2_score}"
     if team2_score > team1_score:
         return f"{team2_emoji} wins {team2_score}-{team1_score}"
     return f"Tie {team1_emoji} {team1_score}-{team2_score} {team2_emoji}"
+
 
 def render_game_info_string(game):
     t1_score, t2_score = count_round_wins(game.history)
@@ -220,6 +260,7 @@ def render_game_info_string(game):
         f"*Players:* {', '.join(game.team2.players)}\n"
     )
 
+
 def render_game_start_message(game):
     return (
         "New game starting!\n"
@@ -229,6 +270,7 @@ def render_game_start_message(game):
         f"{game.team2.emoji} {game.team2.name}\n"
         f"{', '.join(game.team2.players)}\n"
     )
+
 
 def render_confirm_delete_message(game):
     return (

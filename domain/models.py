@@ -10,25 +10,19 @@ class Team:
     players: List[str]
 
     def to_dict(self):
-        return {
-            "name": self.name,
-            "emoji": self.emoji,
-            "players": self.players
-        }
+        return {"name": self.name, "emoji": self.emoji, "players": self.players}
 
     @staticmethod
     def from_dict(data: dict) -> "Team":
-        return Team(
-            name=data["name"],
-            emoji=data["emoji"],
-            players=data["players"]
-        )
+        return Team(name=data["name"], emoji=data["emoji"], players=data["players"])
+
 
 @dataclass
 class GameState:
     team1_beers: List[str]
     team2_beers: List[str]
     reverse: bool = False
+
 
 @dataclass
 class Game:
@@ -44,7 +38,7 @@ class Game:
             "timestamp": self.timestamp,
             "team1": self.team1.to_dict(),
             "team2": self.team2.to_dict(),
-            "history": [action_to_dict(a) for a in self.history]
+            "history": [action_to_dict(a) for a in self.history],
         }
 
     @classmethod
@@ -59,12 +53,12 @@ class Game:
             try:
                 history.append(action_from_dict(item))
             except Exception:
-                continue # skip corrupted actions
+                continue  # skip corrupted actions
 
         return cls(
             id=data["id"],
             timestamp=data.get("timestamp", 0),
             team1=team1,
             team2=team2,
-            history=history
+            history=history,
         )

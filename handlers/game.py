@@ -13,7 +13,7 @@ from domain.render import (
     render_result_string,
     render_game_info_string,
     render_game_start_message,
-    render_confirm_delete_message
+    render_confirm_delete_message,
 )
 from domain.engine import compute_state, count_round_wins
 import ui.text as uitxt
@@ -23,7 +23,7 @@ from ui.keyboards import (
     game_info_continue_keyboard,
     confirm_delete_keyboard,
     delete_keyboard,
-    confirm_end_keyboard
+    confirm_end_keyboard,
 )
 
 
@@ -31,17 +31,23 @@ from ui.keyboards import (
 async def game_info(ctx: Ctx):
     await show_game_info(ctx)
 
+
 async def show_game_info(ctx: Ctx):
     t1_score, t2_score = count_round_wins(ctx.game.history)
-    if t1_score + t2_score == 0: # Game not yet started
+    if t1_score + t2_score == 0:  # Game not yet started
         keyboard = game_info_start_keyboard(ctx.game.id)
     else:
-        result_string = render_result_string(t1_score, t2_score, ctx.game.team1.emoji, ctx.game.team2.emoji)
+        result_string = render_result_string(
+            t1_score, t2_score, ctx.game.team1.emoji, ctx.game.team2.emoji
+        )
         keyboard = game_info_continue_keyboard(ctx.data.gid, result_string)
 
     reply = render_game_info_string(ctx.game)
     await ctx.update.callback_query.answer()
-    await ctx.update.callback_query.edit_message_text(reply, reply_markup=keyboard, parse_mode="Markdown")
+    await ctx.update.callback_query.edit_message_text(
+        reply, reply_markup=keyboard, parse_mode="Markdown"
+    )
+
 
 @with_context
 async def start_game(ctx: Ctx):
@@ -61,21 +67,21 @@ async def start_game(ctx: Ctx):
         ctx.user_str,
         ctx.game.id,
         ctx.game.team1.name,
-        ctx.game.team2.name
-        )
+        ctx.game.team2.name,
+    )
 
     await ctx.update.callback_query.answer()
     await show_live_game(ctx)
+
 
 @with_context
 async def confirm_delete(ctx: Ctx):
     reply = render_confirm_delete_message(ctx.game)
     await ctx.update.callback_query.answer()
     await ctx.update.callback_query.edit_message_text(
-        reply,
-        parse_mode="Markdown",
-        reply_markup=confirm_delete_keyboard(ctx.data.gid)
+        reply, parse_mode="Markdown", reply_markup=confirm_delete_keyboard(ctx.data.gid)
     )
+
 
 @with_context
 async def delete_game(ctx: Ctx):
@@ -85,18 +91,20 @@ async def delete_game(ctx: Ctx):
         ctx.user_str,
         ctx.game.id,
         ctx.game.team1.name,
-        ctx.game.team2.name
-        )
+        ctx.game.team2.name,
+    )
     await ctx.update.callback_query.answer()
     await ctx.update.callback_query.edit_message_text(
         f"Game id {ctx.data.gid} deleted.",
         reply_markup=delete_keyboard(),
-        parse_mode="Markdown"
+        parse_mode="Markdown",
     )
+
 
 @with_context
 async def live_game(ctx: Ctx):
     await show_live_game(ctx)
+
 
 async def show_live_game(ctx: Ctx):
     marked_by_game = ctx.context.user_data.get("marked", {})
@@ -109,15 +117,14 @@ async def show_live_game(ctx: Ctx):
     await ctx.update.callback_query.answer()
     try:
         await ctx.update.callback_query.edit_message_text(
-            text,
-            reply_markup=keyboard,
-            parse_mode="Markdown"
+            text, reply_markup=keyboard, parse_mode="Markdown"
         )
     except BadRequest as e:
         if "Message is not modified" in str(e):
             pass  # ignore safely
         else:
             raise
+
 
 @with_context
 async def mark_beer(ctx: Ctx):
@@ -127,7 +134,7 @@ async def mark_beer(ctx: Ctx):
     game = storage.load(gid)
     state = compute_state(game)
     beers = getattr(state, f"{team}_beers")
-    if beers[int(index)] == ' ':
+    if beers[int(index)] == " ":
         await query.answer()
         return
 
@@ -145,6 +152,7 @@ async def mark_beer(ctx: Ctx):
     await query.answer()
     await show_live_game(ctx)
 
+
 @with_context
 async def switch_sides(ctx: Ctx):
     action = SwitchSides()
@@ -153,18 +161,16 @@ async def switch_sides(ctx: Ctx):
     msg = await ctx.broadcaster.send(message)
     ctx.game.history[-1].message_ids.append(msg.message_id)
     ctx.storage.save(ctx.game)
-    logger.info(
-        "User: %s | Switched Sides | gid=%s",
-        ctx.user_str,
-        ctx.game.id
-        )
+    logger.info("User: %s | Switched Sides | gid=%s", ctx.user_str, ctx.game.id)
     await ctx.update.callback_query.answer()
     await show_live_game(ctx)
+
 
 @with_context
 async def refresh(ctx: Ctx):
     await ctx.update.callback_query.answer(uitxt.REFRESH_NOTIFY)
     await show_live_game(ctx)
+
 
 @with_context
 async def assign_knocks(ctx: Ctx):
@@ -176,14 +182,11 @@ async def assign_knocks(ctx: Ctx):
         return
 
     knocked_beers = [
-        (team, index, state_to)
-        for (team, index), state_to in marked.items()
+        (team, index, state_to) for (team, index), state_to in marked.items()
     ]
 
     action = AssignKnocks(
-        team=ctx.data.team,
-        player=ctx.data.player,
-        knocked_beers=knocked_beers
+        team=ctx.data.team, player=ctx.data.player, knocked_beers=knocked_beers
     )
     message = render_game_message(ctx.game, pending_action=action)
     msg = await ctx.broadcaster.send(message)
@@ -197,10 +200,11 @@ async def assign_knocks(ctx: Ctx):
         ctx.game.id,
         ctx.data.team,
         ctx.data.player,
-        str(knocked_beers)
-        )
+        str(knocked_beers),
+    )
     await ctx.update.callback_query.answer()
     await show_live_game(ctx)
+
 
 @with_context
 async def undo(ctx: Ctx):
@@ -216,13 +220,14 @@ async def undo(ctx: Ctx):
         "User: %s | Undid last action | gid=%s last_action=%s",
         ctx.user_str,
         ctx.game.id,
-        str(last_action)
-        )
+        str(last_action),
+    )
     await ctx.update.callback_query.answer()
     if isinstance(last_action, (StartGame, StartRound)):
         await show_game_info(ctx)
     else:
         await show_live_game(ctx)
+
 
 @with_context
 async def end_round(ctx: Ctx):
@@ -235,15 +240,16 @@ async def end_round(ctx: Ctx):
         "User: %s | Ended round | gid=%s winner=%s",
         ctx.user_str,
         ctx.game.id,
-        ctx.data.winner
-        )
+        ctx.data.winner,
+    )
     await ctx.update.callback_query.answer()
     await show_game_info(ctx)
+
 
 @with_context
 async def start_round(ctx: Ctx):
     n_rounds = len([g for g in ctx.game.history if isinstance(g, EndRound)])
-    ctx.game.history.append(StartRound(round_n = n_rounds + 1))
+    ctx.game.history.append(StartRound(round_n=n_rounds + 1))
     message = render_game_message(ctx.game)
     msg = await ctx.broadcaster.send(message)
     ctx.game.history[-1].message_ids.append(msg.message_id)
@@ -252,14 +258,15 @@ async def start_round(ctx: Ctx):
         "User: %s | Started round | gid=%s round_n=%s",
         ctx.user_str,
         ctx.game.id,
-        str(ctx.data.n_rounds+1)
-        )
+        str(ctx.data.n_rounds + 1),
+    )
     try:
         ctx.context.user_data["marked"].pop(ctx.data.gid, None)
     except KeyError:
         pass
     await ctx.update.callback_query.answer()
     await show_live_game(ctx)
+
 
 @with_context
 async def confirm_end_game(ctx: Ctx):
@@ -275,7 +282,10 @@ async def confirm_end_game(ctx: Ctx):
         reply += f"Tie {ctx.game.team1.emoji} *{ctx.game.team1.name}* {t1_score} - {t2_score} *{ctx.game.team2.name}* {ctx.game.team2.emoji}"
     keyboard = confirm_end_keyboard(ctx.data.gid)
     await ctx.update.callback_query.answer()
-    await ctx.update.callback_query.edit_message_text(reply, reply_markup=keyboard, parse_mode="Markdown")
+    await ctx.update.callback_query.edit_message_text(
+        reply, reply_markup=keyboard, parse_mode="Markdown"
+    )
+
 
 @with_context
 async def end_game(ctx: Ctx):
@@ -284,10 +294,8 @@ async def end_game(ctx: Ctx):
     ctx.game.history[-1].message_ids.append(msg.message_id)
     keyboard = back_to_main_keyboard()
     ctx.storage.delete(ctx.data.gid)
-    logger.info(
-        "User: %s | Ended game | gid=%s",
-        ctx.user_str,
-        ctx.game.id
-        )
+    logger.info("User: %s | Ended game | gid=%s", ctx.user_str, ctx.game.id)
     await ctx.update.callback_query.answer()
-    await ctx.update.callback_query.edit_message_text(message, reply_markup=keyboard, parse_mode="Markdown")
+    await ctx.update.callback_query.edit_message_text(
+        message, reply_markup=keyboard, parse_mode="Markdown"
+    )

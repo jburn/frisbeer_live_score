@@ -21,8 +21,9 @@ def with_context(func):
             game=game,
             storage=storage,
             broadcaster=broadcaster,
-            user=user
+            user=user,
         )
 
         return await func(ctx, *args, **kwargs)
+
     return wrapper

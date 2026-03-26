@@ -17,8 +17,7 @@ class Storage:
     def save(self, game: Game):
         data = json.dumps(game.to_dict())
         self.conn.execute(
-            "INSERT OR REPLACE INTO games (id, data) VALUES (?, ?)",
-            (game.id, data)
+            "INSERT OR REPLACE INTO games (id, data) VALUES (?, ?)", (game.id, data)
         )
         self.conn.commit()
 
@@ -35,25 +34,31 @@ class Storage:
             if a["type"] == "SwitchSides":
                 history.append(SwitchSides(message_ids=a["message_ids"]))
             elif a["type"] == "AssignKnocks":
-                history.append(AssignKnocks(
-                    a["team"],
-                    a["player"],
-                    a["knocked_beers"],
-                    message_ids=a["message_ids"]
-                    ))
+                history.append(
+                    AssignKnocks(
+                        a["team"],
+                        a["player"],
+                        a["knocked_beers"],
+                        message_ids=a["message_ids"],
+                    )
+                )
             elif a["type"] == "StartGame":
                 history.append(StartGame(message_ids=a["message_ids"]))
             elif a["type"] == "StartRound":
-                history.append(StartRound(round_n=a["round_n"], message_ids=a["message_ids"]))
+                history.append(
+                    StartRound(round_n=a["round_n"], message_ids=a["message_ids"])
+                )
             elif a["type"] == "EndRound":
-                history.append(EndRound(winner=a["winner"], message_ids=a["message_ids"]))
+                history.append(
+                    EndRound(winner=a["winner"], message_ids=a["message_ids"])
+                )
 
         game = Game(
             id=raw["id"],
             timestamp=raw["timestamp"],
             team1=Team(**raw["team1"]),
             team2=Team(**raw["team2"]),
-            history=history
+            history=history,
         )
 
         return game

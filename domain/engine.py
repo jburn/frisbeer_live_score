@@ -1,24 +1,16 @@
 from domain.models import GameState, Game
 from domain.actions import Action, StartRound, EndRound, StartGame, AssignKnocks
 
+ASSIGN_MAP = {"b": "b", "k": " ", "f": "u", "u": "u", " ": " "}
 
-ASSIGN_MAP = {
-    "b": "b",
-    "k": " ",
-    "f": "u",
-    "u": "u",
-    " ": " "
-}
 
 def assign_format_beer(current: str) -> str:
     return ASSIGN_MAP.get(current, current)
 
+
 def initial_state() -> GameState:
-    return GameState(
-        team1_beers=["b"]*8,
-        team2_beers=["b"]*8,
-        reverse=False
-    )
+    return GameState(team1_beers=["b"] * 8, team2_beers=["b"] * 8, reverse=False)
+
 
 def apply_action(state: GameState, action: Action) -> GameState:
     if action.__class__.__name__ == "SwitchSides":
@@ -40,6 +32,7 @@ def apply_action(state: GameState, action: Action) -> GameState:
 
     return state
 
+
 def compute_state(game: Game) -> GameState:
     state = initial_state()
 
@@ -47,6 +40,7 @@ def compute_state(game: Game) -> GameState:
         state = apply_action(state, action)
 
     return state
+
 
 def get_current_round_knocks(actions: list[Action]) -> list[AssignKnocks]:
     """
@@ -64,14 +58,17 @@ def get_current_round_knocks(actions: list[Action]) -> list[AssignKnocks]:
 
     for j in range(start_i + 1, len(actions)):
         if isinstance(actions[j], EndRound):
-            return list(filter(lambda x: isinstance(x, AssignKnocks), actions[start_i+1:j]))
+            return list(
+                filter(lambda x: isinstance(x, AssignKnocks), actions[start_i + 1 : j])
+            )
 
     return list(filter(lambda x: isinstance(x, AssignKnocks), actions[start_i:]))
+
 
 def count_player_knocks(game, actions: list[AssignKnocks]):
     results = {
         "team1": {player: [0, 0] for player in game.team1.players},
-        "team2": {player: [0, 0] for player in game.team2.players}
+        "team2": {player: [0, 0] for player in game.team2.players},
     }
     for knock in actions:
         team = knock.team
@@ -79,13 +76,14 @@ def count_player_knocks(game, actions: list[AssignKnocks]):
         beers = knock.knocked_beers
         for beer in beers:
             owner, _, res = beer
-            if res != 'k':
+            if res != "k":
                 continue
             if team == owner:
                 results[team][player][1] += 1
                 continue
             results[team][player][0] += 1
     return results
+
 
 def count_round_wins(actions):
     round_results = [a for a in actions if isinstance(a, EndRound)]
