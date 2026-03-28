@@ -9,14 +9,7 @@ from domain.engine import (
     count_round_wins,
 )
 from domain.models import Game, GameState
-from domain.actions import (
-    AssignKnocks,
-    SwitchSides,
-    Action,
-    StartGame,
-    StartRound,
-    EndRound,
-)
+from domain.actions import AssignKnocks, SwitchSides, Action, StartGame, StartRound
 
 MARK_MAP = {"b": "k", "k": "f", "f": "b", "u": "k", " ": " "}
 
@@ -49,9 +42,7 @@ def render(
     t1 = game.team1
     t2 = game.team2
 
-    round_results = [a for a in game.history if isinstance(a, EndRound)]
-    t1_score = len([round for round in round_results if round.winner == "team1"])
-    t2_score = len([round for round in round_results if round.winner == "team2"])
+    t1_score, t2_score = count_round_wins(game.history)
 
     reply = f"`{render_game_message(game)}`"
 
@@ -203,27 +194,24 @@ def render_round_report(game: Game) -> str:
     knocks = count_player_knocks(game, actions)
     round_report = ""
     if winner == "team1":
-        round_report += f"{team1.emoji} {team2.name} won the round!\n"
+        round_report += f"{team1.emoji} {team1.name} won the round!\n"
     else:
         round_report += f"{team2.emoji} {team2.name} won the round!\n"
     round_report += "Round report:\n"
     round_report += f"{team1.emoji} {team1.name}\n"
+    w = str(max(len(pname) for pname in team1.players + team2.players))
     for player in team1.players:
-        round_report += (
-            f"{player} {knocks['team1'][player][0]} (-{knocks['team1'][player][1]})\n"
-        )
+        knocks, selfknocks = knocks["team1"][player]
+        round_report += f"{player:<{w}} 💥: {knocks:>1} {'(-' + str(selfknocks) + ')' if selfknocks != 0 else "":>4}\n"
     round_report += f"{team2.emoji} {team2.name}\n"
     for player in team2.players:
-        round_report += (
-            f"{player} {knocks['team2'][player][0]} (-{knocks['team2'][player][1]})\n"
-        )
+        knocks, selfknocks = knocks["team2"][player]
+        round_report += f"{player:<{w}} 💥: {knocks:>1} {'(-' + str(selfknocks) + ')' if selfknocks != 0 else "":>4}\n"
     return round_report
 
 
 def render_game_win_message(game: Game) -> str:
-    round_results = [a for a in game.history if isinstance(a, EndRound)]
-    t1_score = len([round for round in round_results if round.winner == "team1"])
-    t2_score = len([round for round in round_results if round.winner == "team2"])
+    t1_score, t2_score = count_round_wins(game.history)
 
     if t1_score > t2_score:
         reply = (
