@@ -36,7 +36,14 @@ def apply_action(state: GameState, action: Action) -> GameState:
 def compute_state(game: Game) -> GameState:
     state = initial_state()
 
-    for action in game.history:
+    for i in reversed(range(len(game.history))):
+        if isinstance(game.history[i], (StartRound, StartGame)):
+            start_i = i
+            break
+
+    actions = game.history[start_i:]
+
+    for action in actions:
         state = apply_action(state, action)
 
     return state
