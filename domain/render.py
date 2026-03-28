@@ -201,12 +201,12 @@ def render_round_report(game: Game) -> str:
     round_report += f"{team1.emoji} {team1.name}\n"
     w = str(max(len(pname) for pname in team1.players + team2.players))
     for player in team1.players:
-        knocks, selfknocks = knocks["team1"][player]
-        round_report += f"{player:<{w}} 💥: {knocks:>1} {'(-' + str(selfknocks) + ')' if selfknocks != 0 else "":>4}\n"
+        knock_n, selfknocks = knocks["team1"][player]
+        round_report += f"{player:<{w}} 💥: {knock_n:>1} {'(-' + str(selfknocks) + ')' if selfknocks != 0 else "":>4}\n"
     round_report += f"{team2.emoji} {team2.name}\n"
     for player in team2.players:
-        knocks, selfknocks = knocks["team2"][player]
-        round_report += f"{player:<{w}} 💥: {knocks:>1} {'(-' + str(selfknocks) + ')' if selfknocks != 0 else "":>4}\n"
+        knock_n, selfknocks = knocks["team2"][player]
+        round_report += f"{player:<{w}} 💥: {knock_n:>1} {'(-' + str(selfknocks) + ')' if selfknocks != 0 else "":>4}\n"
     return round_report
 
 
