@@ -258,7 +258,7 @@ async def start_round(ctx: Ctx):
         "User: %s | Started round | gid=%s round_n=%s",
         ctx.user_str,
         ctx.game.id,
-        str(ctx.data.n_rounds + 1),
+        str(n_rounds + 1),
     )
     try:
         ctx.context.user_data["marked"].pop(ctx.data.gid, None)
