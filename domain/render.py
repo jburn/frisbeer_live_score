@@ -1,4 +1,5 @@
 from copy import deepcopy
+from urllib.parse import quote
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import ui.text as uitxt
 from domain.engine import (
@@ -55,7 +56,9 @@ def render(
     reply = f"`{render_game_message(game)}`"
 
     t1_name_buttons = [
-        InlineKeyboardButton(player, callback_data=f"assign:{gid}:team1:{player}")
+        InlineKeyboardButton(
+            player, callback_data=f"assign:{gid}:team1:{quote(player)}"
+        )
         for player in t1.players
     ]
     t1_beer_buttons = [
@@ -63,7 +66,9 @@ def render(
         for i, x in enumerate(state.team1_beers)
     ]
     t2_name_buttons = [
-        InlineKeyboardButton(player, callback_data=f"assign:{gid}:team2:{player}")
+        InlineKeyboardButton(
+            player, callback_data=f"assign:{gid}:team2:{quote(player)}"
+        )
         for player in t2.players
     ]
     t2_beer_buttons = [

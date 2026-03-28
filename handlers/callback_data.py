@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from urllib.parse import unquote
 
 
 @dataclass
@@ -11,7 +12,6 @@ class CallbackData:
     winner: str | None = None
     round_n: str | None = None
 
-
     @classmethod
     def parse(cls, data: str):
         parts = data.split(":")
@@ -19,7 +19,7 @@ class CallbackData:
 
         if action == "assign":
             _, gid, team, player = parts
-            return cls(action, gid, team, player=player)
+            return cls(action, gid, team, player=unquote(player))
 
         if action == "mark":
             _, gid, team, index = parts
