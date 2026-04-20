@@ -72,13 +72,13 @@ def game_info_start_keyboard(game_id: str) -> InlineKeyboardMarkup:
 
 
 def game_info_continue_keyboard(
-    game_id: str, result_string: str
+    game_id: str, result_string: str, round_n: int
 ) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(
-                    uitxt.CONTINUE_GAME, callback_data=f"start_round:{game_id}"
+                    uitxt.CONTINUE_GAME, callback_data=f"start_round:{game_id}:{round_n}"
                 )
             ],
             [

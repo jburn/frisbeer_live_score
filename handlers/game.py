@@ -34,13 +34,14 @@ async def game_info(ctx: Ctx):
 
 async def show_game_info(ctx: Ctx):
     t1_score, t2_score = count_round_wins(ctx.game.history)
+    round_num = t1_score + t2_score + 1
     if t1_score + t2_score == 0:  # Game not yet started
         keyboard = game_info_start_keyboard(ctx.game.id)
     else:
         result_string = render_result_string(
             t1_score, t2_score, ctx.game.team1.emoji, ctx.game.team2.emoji
         )
-        keyboard = game_info_continue_keyboard(ctx.data.gid, result_string)
+        keyboard = game_info_continue_keyboard(ctx.data.gid, result_string, round_num)
 
     reply = render_game_info_string(ctx.game)
     await ctx.update.callback_query.answer()
