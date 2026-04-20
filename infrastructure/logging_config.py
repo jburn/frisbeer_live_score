@@ -28,7 +28,8 @@ def setup_logging():
     __logger.addHandler(console_handler)
 
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("telegram").setLevel(logging.INFO)
+    logging.getLogger("telegram").setLevel(logging.WARNING)
+    logging.getLogger("telegram.ext").setLevel(logging.ERROR)
 
     return __logger
 
